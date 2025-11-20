@@ -26,7 +26,7 @@ import { Loader2 } from "lucide-react"
 
 const loginSchema = z.object({
   email: z.email(),
-  password: z.string().min(4, "Password should be more then 4 characters"),
+  password: z.string().min(8, "Password should be more then 8 characters"),
 })
 
 type LoginData = z.infer<typeof loginSchema>

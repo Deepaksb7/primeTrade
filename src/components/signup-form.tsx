@@ -27,8 +27,8 @@ import { Loader2 } from "lucide-react";
 const signUp = z.object({
   name: z.string(),
   email: z.email(),
-  password: z.string().min(6, "Password is required"),
-  confirmPassword: z.string().min(6, "Password is required"),
+  password: z.string().min(8, "Password is required"),
+  confirmPassword: z.string().min(8, "Password is required"),
 });
 
 type SignUpData = z.infer<typeof signUp>;
@@ -66,7 +66,7 @@ export function SignupForm({
       }
 
       const { confirmPassword, ...userData } = data;
-      const response = await axios.post("/api/signup", userData);
+      const response = await axios.post(`${process.env.NEXTAUTH_URL}/api/signup`, userData);
 
       if (response.status === 200 || response.status === 201) {
         router.push("/login");
