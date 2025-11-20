@@ -99,7 +99,7 @@ export function LoginForm({
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                 </div>
-                <Input id="password" type="password" {...register("password")} required />
+                <Input id="password" type="password" placeholder="********" {...register("password")} required />
                 {errors.password && (
                   <p className="text-red-500 text-sm">
                     {errors.password.message}
