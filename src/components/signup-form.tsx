@@ -40,7 +40,6 @@ export function SignupForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   const {
     register,
@@ -67,7 +66,7 @@ export function SignupForm({
       }
 
       const { confirmPassword, ...userData } = data;
-      const response = await axios.post(`${baseUrl}/api/signup`, userData);
+      const response = await axios.post("/api/signup", userData);
 
       if (response.status === 200 || response.status === 201) {
         router.push("/login");
