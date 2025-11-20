@@ -6,7 +6,7 @@ import axios from "axios";
 import Cards from "@/components/cards";
 import EditableCard from "@/components/EditableCard";
 import { Plus, Search } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter} from "next/navigation";
 import { useCallback } from "react";
 
 interface Note {
@@ -20,14 +20,18 @@ type SortOption = "newest" | "oldest" | "a-z" | "z-a";
 
 const Page = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [notes, setNotes] = useState<Note[]>([]);
-  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [search, setSearch] = useState("");
   const [addingNote, setAddingNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [sort, setSort] = useState<SortOption>(
-    (searchParams.get("sort") as SortOption) || "newest"
-  );
+  const [sort, setSort] = useState<SortOption>( "newest");
+
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  setSearch(params.get("search") || "");
+  setSort((params.get("sort") as SortOption) || "newest");
+}, []);
+
 
   const updateQuery = useCallback(
   (newSearch: string, newSort: string) => {
