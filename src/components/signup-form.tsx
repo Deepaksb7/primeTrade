@@ -1,59 +1,57 @@
-"use client"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+"use client";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import z from "zod"
-import { useForm } from "react-hook-form"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import z from "zod";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import axios from "axios"
-
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import axios from "axios";
+import { Loader2 } from "lucide-react";
 
 const signUp = z.object({
   name: z.string(),
   email: z.email(),
   password: z.string().min(6, "Password is required"),
   confirmPassword: z.string().min(6, "Password is required"),
-})
+});
 
-type SignUpData = z.infer<typeof signUp>
+type SignUpData = z.infer<typeof signUp>;
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-   
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const router = useRouter()
+  const router = useRouter();
 
   const {
     register,
     handleSubmit,
-     
+
     formState: {},
   } = useForm<SignUpData>({
     resolver: zodResolver(signUp),
-  })
+  });
 
   const onSubmit = async (data: z.infer<typeof signUp>) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       if (data.password !== data.confirmPassword) {
         toast.error("Passwords do not match");
@@ -66,25 +64,23 @@ export function SignupForm({
         setIsSubmitting(false);
         return;
       }
-  
-      const { confirmPassword , ...userData } = data;
-      const response = await axios.post("/api/signup", userData)
+
+      const { confirmPassword, ...userData } = data;
+      const response = await axios.post("/api/signup", userData);
 
       if (response.status === 200 || response.status === 201) {
-        router.push("/login")
+        router.push("/login");
         toast.success(response.data.message);
       } else {
         toast.error("Signup failed. Please try again.");
       }
-      setIsSubmitting(false)
-      
-
+      setIsSubmitting(false);
     } catch (err) {
-      console.error("Error in signup of user",err)
-      toast.error("Something went wrong. Please try again later")
-      setIsSubmitting(false)
+      console.error("Error in signup of user", err);
+      toast.error("Something went wrong. Please try again later");
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -122,18 +118,35 @@ export function SignupForm({
                 <Field className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input id="password" type="password" placeholder="********" {...register("password")} required />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="********"
+                      {...register("password")}
+                      required
+                    />
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="confirm-password">
                       Confirm Password
                     </FieldLabel>
-                    <Input id="confirm-password" type="password" placeholder="********" {...register("confirmPassword")} required />
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder="********"
+                      {...register("confirmPassword")}
+                      required
+                    />
                   </Field>
                 </Field>
               </Field>
               <Field>
-                <Button type="submit">Create Account</Button>
+                <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
+                  {isSubmitting && (
+                    <span className="mr-2"><Loader2 className="mr-2 h-4 w-4 animate-spin" /></span>
+                  )}
+                  {isSubmitting ? "Creating..." : "Create Account"}
+                </Button>
                 <FieldDescription className="text-center">
                   Already have an account? <a href="/login">Sign in</a>
                 </FieldDescription>
@@ -147,5 +160,5 @@ export function SignupForm({
         and <a href="#">Privacy Policy</a>.
       </FieldDescription>
     </div>
-  )
+  );
 }

@@ -21,6 +21,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { Loader2 } from "lucide-react"
 
 const loginSchema = z.object({
   email: z.email(),
@@ -34,6 +36,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const {
     register,
     handleSubmit,
@@ -43,18 +46,26 @@ export function LoginForm({
   })
 
   const onSubmit = async (data: LoginData) => {
-    const result = await signIn("credentials", {
-      redirect: false,
-      email: data.email,
-      password: data.password
-    })
+    setIsSubmitting(true)
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password
+      })
 
-    if (!result?.ok) {
-      toast.error("Incorrect Email or Password");
-      console.log("Login failed:", result?.error);
-    } else {
-      toast.success("Login successful");
-      router.replace("/dashboard");
+      if (!result?.ok) {
+        toast.error("Incorrect Email or Password");
+        console.log("Login failed:", result?.error);
+      } else {
+        toast.success("Login successful");
+        router.replace("/dashboard");
+      }
+    } catch (err) {
+      console.error("Error in login of user", err)
+      toast.error("Something went wrong. Please try again later")
+    }finally{
+      setIsSubmitting(false)
     }
   }
   return (
@@ -96,7 +107,12 @@ export function LoginForm({
                 )}
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
+                <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
+                  {isSubmitting && (
+                    <span className="mr-2"><Loader2 className="mr-2 h-4 w-4 animate-spin" /></span>
+                  )}
+                  {isSubmitting ? "Logging in..." : "Login"}
+                </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="/signup">Sign up</a>
                 </FieldDescription>
