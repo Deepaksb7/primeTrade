@@ -2,7 +2,7 @@ import dbConnect from "@/lib/dbConnection";
 import userModel from "@/model/user";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "../auth/[...nextauth]/options";
+import { options } from "../auth/[...nextauth]/options";
 import noteModel from "@/model/notes";
 import { FilterQuery, SortOrder } from "mongoose";
 
@@ -17,7 +17,7 @@ export interface Note {
 export async function GET(req: Request) {
   await dbConnect();
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(options);
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -59,7 +59,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   await dbConnect();
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(options);
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

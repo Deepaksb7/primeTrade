@@ -4,13 +4,13 @@ import userModel from "@/model/user";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import noteModel from "@/model/notes";
-import { authOptions } from "../../auth/[...nextauth]/options";
+import { options } from "../../auth/[...nextauth]/options";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     await dbConnect();
     const { id } = await params;
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(options);
         if (!session || !session.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
@@ -43,7 +43,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     await dbConnect();
     const { id } = await params;
     try {
-        const session = await getServerSession(authOptions);
+        const session = await getServerSession(options);
         if (!session || !session.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
