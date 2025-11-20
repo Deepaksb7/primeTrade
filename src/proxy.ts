@@ -10,14 +10,13 @@ export async function proxy(request: NextRequest) {
     (
       url.pathname.startsWith("/signin") ||
       url.pathname.startsWith("/signup") ||
-      url.pathname.startsWith("/profile") ||
       url.pathname === "/"
     )
   ) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  if (!token && url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/profile")) {
+  if (!token && (url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/profile"))) {
     return NextResponse.redirect(new URL('/signup', request.url));
   }
 

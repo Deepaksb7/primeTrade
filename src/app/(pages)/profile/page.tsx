@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { Mail, Edit2, Save, X } from 'lucide-react';
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/navbar";
 
 const page = () => {
   const {data:session , status} = useSession()
@@ -52,8 +53,9 @@ const page = () => {
   const initials = profile.name ? profile.name.slice(0, 2).toUpperCase() : "??"
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
-
+    <>
+      <Navbar />  
+    <div className="min-h-[80vh] bg-slate-50 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-lg bg-white rounded-4xl shadow-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-3xl">
 
         <div className="h-40 bg-linear-to-r from-blue-600 via-blue-500 to-indigo-600 relative">
@@ -92,7 +94,6 @@ const page = () => {
 
             <div className="flex gap-4 justify-center">
 
-              {/* CONDITIONAL RENDERING: Save vs Edit Button */}
               {isEditing ? (
                 <div className="flex-1 flex gap-2">
                   <button
@@ -128,6 +129,7 @@ const page = () => {
         </div>
       </div>
     </div>
+    </>
   )
 }
 
