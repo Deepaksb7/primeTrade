@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import axios from "axios";
@@ -6,6 +7,7 @@ import Cards from "@/components/cards";
 import EditableCard from "@/components/EditableCard";
 import { Plus, Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
 
 interface Note {
   _id?: string;
@@ -14,6 +16,8 @@ interface Note {
   createdAt?: string;
 }
 
+type SortOption = "newest" | "oldest" | "a-z" | "z-a";
+
 const Page = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,68 +25,49 @@ const Page = () => {
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [addingNote, setAddingNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [sort, setSort] = useState<"newest" | "oldest" | "a-z" | "z-a">(
-    (searchParams.get("sort") as any) || "newest"
+  const [sort, setSort] = useState<SortOption>(
+    (searchParams.get("sort") as SortOption) || "newest"
   );
 
-  const updateQuery = (newSearch: string, newSort: string) => {
+  const updateQuery = useCallback(
+  (newSearch: string, newSort: string) => {
     const params = new URLSearchParams({ search: newSearch, sort: newSort });
     router.replace(`/dashboard?${params.toString()}`);
-  };
+  },
+  [router]
+);
+
 
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        const res = await axios.get("/api/notes");
+        const res = await axios.get("/api/notes", { params: { search, sort } });
         setNotes(res.data.notes || []);
       } catch (err) {
         console.error("Failed to fetch notes:", err);
       }
     };
     fetchNotes();
-  }, []);
+  }, [search, sort]);
+
+  const handleSearch = useCallback(
+  (newSearch?: string) => {
+    const searchValue = newSearch ?? search;
+    setSearch(searchValue);
+    updateQuery(searchValue, sort);
+  },
+  [search, sort, updateQuery] 
+);
+
 
   useEffect(() => {
-    const sortedNotes = [...notes].sort((a, b) => {
-      if (sort === "newest") {
-        return (
-          new Date(b.createdAt || 0).getTime() -
-          new Date(a.createdAt || 0).getTime()
-        );
-      }
-      if (sort === "oldest") {
-        return (
-          new Date(a.createdAt || 0).getTime() -
-          new Date(b.createdAt || 0).getTime()
-        );
-      }
-      if (sort === "a-z") {
-        return a.title.localeCompare(b.title);
-      }
-      if (sort === "z-a") {
-        return b.title.localeCompare(a.title);
-      }
-      return 0;
-    });
-    setNotes(sortedNotes);
-  }, [sort]);
+  const delayDebounce = setTimeout(() => {
+    handleSearch(search);
+  }, 300);
 
-  useEffect(() => {
-    const delayDebounce = setTimeout(() => {
-      handleSearch();
-    }, 300);
-    return () => clearTimeout(delayDebounce);
-  }, [search]);
+  return () => clearTimeout(delayDebounce);
+}, [search, handleSearch]); 
 
-  const handleSearch = async () => {
-    try {
-      const res = await axios.get("/api/notes", { params: { search, sort } });
-      setNotes(res.data.notes || []);
-    } catch (err) {
-      console.error("Failed to search notes:", err);
-      setNotes([]);
-    }
-  };
 
   const handleAddNote = async (title: string, content: string) => {
     try {
@@ -130,22 +115,17 @@ const Page = () => {
               type="text"
               placeholder="Search your notes..."
               value={search}
-              // onChange={(e) => setSearch(e.target.value)}
-              // onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                updateQuery(e.target.value, sort);
-              }}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
 
           <select
             className="rounded-xl border bg-white px-3 py-2 shadow-sm text-sm"
             value={sort}
-            // onChange={(e) => setSort(e.target.value as any)}
             onChange={(e) => {
-              setSort(e.target.value as any);
-              updateQuery(search, e.target.value);
+              const newSort = e.target.value as SortOption;  
+              setSort(newSort);
+              updateQuery(search, newSort);
             }}
           >
             <option value="newest">Newest first</option>
@@ -180,7 +160,7 @@ const Page = () => {
           {Array.isArray(notes) && notes.length > 0 ? (
             notes.map((note) => (
               <div
-                key={note._id || Math.random()}
+                key={note._id}
                 className="h-full w-full animate-in fade-in zoom-in duration-300"
               >
                 {editingNoteId === note._id ? (

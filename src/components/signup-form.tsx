@@ -38,6 +38,7 @@ export function SignupForm({
   ...props
 }: React.ComponentProps<"div">) {
 
+   
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const router = useRouter()
@@ -45,7 +46,8 @@ export function SignupForm({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+     
+    formState: {},
   } = useForm<SignUpData>({
     resolver: zodResolver(signUp),
   })
@@ -75,7 +77,6 @@ export function SignupForm({
         toast.error("Signup failed. Please try again.");
       }
       setIsSubmitting(false)
-      console.log(response)
       
 
     } catch (err) {

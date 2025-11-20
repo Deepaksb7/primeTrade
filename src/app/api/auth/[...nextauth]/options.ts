@@ -49,6 +49,7 @@ export const authOptions: NextAuthOptions = {
           return safeUser as AuthUser;
 
         } catch (error) {
+          console.error(error)
           throw new Error("Authentication failed")
         }
       }
