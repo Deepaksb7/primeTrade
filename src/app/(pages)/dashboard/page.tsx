@@ -5,18 +5,30 @@ import axios from "axios";
 import Cards from "@/components/cards";
 import EditableCard from "@/components/EditableCard";
 import { Plus, Search } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Note {
   _id?: string;
   title: string;
   content: string;
+  createdAt?: string;
 }
 
 const Page = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [notes, setNotes] = useState<Note[]>([]);
-  const [search, setSearch] = useState<string>("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [addingNote, setAddingNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [sort, setSort] = useState<"newest" | "oldest" | "a-z" | "z-a">(
+    (searchParams.get("sort") as any) || "newest"
+  );
+
+  const updateQuery = (newSearch: string, newSort: string) => {
+    const params = new URLSearchParams({ search: newSearch, sort: newSort });
+    router.replace(`/dashboard?${params.toString()}`);
+  };
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -31,15 +43,40 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
-  const delayDebounce = setTimeout(() => {
-    handleSearch();
-  }, 300);
-  return () => clearTimeout(delayDebounce);
-}, [search]);
+    const sortedNotes = [...notes].sort((a, b) => {
+      if (sort === "newest") {
+        return (
+          new Date(b.createdAt || 0).getTime() -
+          new Date(a.createdAt || 0).getTime()
+        );
+      }
+      if (sort === "oldest") {
+        return (
+          new Date(a.createdAt || 0).getTime() -
+          new Date(b.createdAt || 0).getTime()
+        );
+      }
+      if (sort === "a-z") {
+        return a.title.localeCompare(b.title);
+      }
+      if (sort === "z-a") {
+        return b.title.localeCompare(a.title);
+      }
+      return 0;
+    });
+    setNotes(sortedNotes);
+  }, [sort]);
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      handleSearch();
+    }, 300);
+    return () => clearTimeout(delayDebounce);
+  }, [search]);
 
   const handleSearch = async () => {
     try {
-      const res = await axios.get("/api/notes", { params: { search } });
+      const res = await axios.get("/api/notes", { params: { search, sort } });
       setNotes(res.data.notes || []);
     } catch (err) {
       console.error("Failed to search notes:", err);
@@ -57,7 +94,7 @@ const Page = () => {
       console.error("Failed to add note:", err);
     }
   };
- 
+
   const handleDeleteNote = async (id: string) => {
     try {
       await axios.delete(`/api/notes/${id}`);
@@ -93,10 +130,29 @@ const Page = () => {
               type="text"
               placeholder="Search your notes..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              // onChange={(e) => setSearch(e.target.value)}
+              // onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                updateQuery(e.target.value, sort);
+              }}
             />
           </div>
+
+          <select
+            className="rounded-xl border bg-white px-3 py-2 shadow-sm text-sm"
+            value={sort}
+            // onChange={(e) => setSort(e.target.value as any)}
+            onChange={(e) => {
+              setSort(e.target.value as any);
+              updateQuery(search, e.target.value);
+            }}
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="a-z">A → Z</option>
+            <option value="z-a">Z → A</option>
+          </select>
 
           <button
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800 hover:shadow-md transition-all focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-zinc-900"
